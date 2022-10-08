@@ -1,53 +1,72 @@
 import { INVALID_MOVE } from 'boardgame.io/core';
 
-// Return true if `cells` is in a winning configuration.
-function IsVictory(cells) {
-	const positions = [
-		[0, 1, 2],
-		[3, 4, 5],
-		[6, 7, 8],
-		[0, 3, 6],
-		[1, 4, 7],
-		[2, 5, 8],
-		[0, 4, 8],
-		[2, 4, 6]
-	];
+const starterTile = {
+	x: 0,
+	y: 0,
+	sides: [true, true, true, true],
+	room: true,
+	heal: true,
+	players: []
+};
 
-	const isRowComplete = (row) => {
-		const symbols = row.map((i) => cells[i]);
-		return symbols.every((i) => i !== null && i === symbols[0]);
-	};
+const movePlayer = (G, ctx, x, y) => {
+	console.log(x, y);
+};
+const addTile = (G, ctx, x, y) => {
+	console.log('add', x, y);
+	G.tiles.push({
+		x,
+		y,
+		sides: [false, true, false, true],
+		room: false,
+		heal: false,
+		players: []
+	});
+	G.tiles = convertTiles(G.tiles);
+};
 
-	return positions.map(isRowComplete).some((i) => i === true);
-}
+const fight = (G, ctx, id) => {};
 
-// Return true if all `cells` are occupied.
-function IsDraw(cells) {
-	return cells.filter((c) => c === null).length === 0;
-}
-export const TicTacToe = {
-	setup: () => ({ cells: Array(9).fill(null) }),
+export const Karak = {
+	setup: () => ({
+		tiles: convertTiles([starterTile])
+	}),
 
 	turn: {
-		minMoves: 1,
-		maxMoves: 1
-	},
-
-	moves: {
-		clickCell: (G, ctx, id) => {
-			if (G.cells[id] !== null) {
-				return INVALID_MOVE;
-			}
-			G.cells[id] = ctx.currentPlayer;
+		stages: {
+			move: { moves: { movePlayer, addTile } },
+			fight: { moves: { fight } }
 		}
 	},
 
 	endIf: (G, ctx) => {
-		if (IsVictory(G.cells)) {
-			return { winner: ctx.currentPlayer };
-		}
-		if (IsDraw(G.cells)) {
-			return { draw: true };
-		}
+		return false;
 	}
 };
+
+function convertTiles(tiles) {
+	const size = tiles.reduce(
+		(acc, { x, y }) => {
+			acc.xMin = Math.min(acc.xMin, x);
+			acc.xMax = Math.max(acc.xMax, x);
+			acc.yMin = Math.min(acc.yMin, y);
+			acc.yMax = Math.max(acc.yMax, y);
+			return acc;
+		},
+		{
+			xMin: 0,
+			xMax: 0,
+			yMin: 0,
+			yMax: 0
+		}
+	);
+	return tiles.map((tile) => {
+		const x = tile.x - size.xMin;
+		const y = tile.y - size.yMin;
+		return {
+			...tile,
+			x,
+			y
+		};
+	});
+}

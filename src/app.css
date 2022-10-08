@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+svg text {
+	text-anchor: middle;
+	dominant-baseline: middle;
+}

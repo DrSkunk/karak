@@ -1,32 +1,42 @@
 <script>
+	import ZoomSvg from '@svelte-parts/zoom/svg';
+	import { onMount } from 'svelte/internal';
+	import RectTile from '../components/RectTile.svelte';
 	import Client from '../lib/Client';
-	import { gameState } from '../lib/Store';
+	import { gameState, map } from '../lib/Store';
+
 	const { client } = Client;
 
-	const cellClick = (i) => {
-		console.log('cell', i);
-		client.moves.clickCell(i);
-	};
+	onMount(() => {
+		console.log(client);
+	});
 </script>
 
-<h1 class="text-3xl font-bold underline">Hello world!</h1>
+<button on:click={() => client.events.setStage('move')}>Set stage</button>
 
-{#if $gameState && $gameState.G}
-	<div class="w-60 p-2 h-60 grid grid-cols-3 gap-2 bg-slate-200">
-		{#each $gameState.G.cells as cell, i}
-			<button
-				class="bg-white hover:bg-slate-100 flex h-full justify-center items-center"
-				on:click={() => cellClick(i)}
-			>
-				{cell}
-			</button>
+<ZoomSvg viewBox="0 0 200 200">
+	<!-- {#each $gameState.G.tiles as tile}
+		<RectTile {...tile} />
+	{/each} -->
+	{#each $map as row, rowIndex}
+		{#each row as tile, colIndex}
+			{#if tile?.free}
+				<RectTile
+					free={true}
+					x={rowIndex}
+					y={colIndex}
+					click={() => client.moves.addTile(tile.x, tile.y)}
+				/>
+			{:else if tile}
+				<RectTile
+					sides={tile.sides}
+					room={tile.room}
+					heal={tile.heal}
+					players={tile.players}
+					x={rowIndex}
+					y={colIndex}
+				/>
+			{/if}
 		{/each}
-	</div>
-{/if}
-{#if $gameState.ctx.gameover}
-	<div id="winner">
-		{$gameState.ctx.gameover.winner !== undefined
-			? `Winner ${$gameState.ctx.gameover.winner}`
-			: 'Draw!'}
-	</div>
-{/if}
+	{/each}
+</ZoomSvg>

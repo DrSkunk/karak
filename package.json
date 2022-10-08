@@ -27,6 +27,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@svelte-parts/zoom": "^0.0.23",
 		"boardgame.io": "^0.49.12"
 	}
 }
